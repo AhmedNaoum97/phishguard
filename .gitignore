@@ -1,0 +1,15 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+.venv/
+
+# IDE settings
+.idea/
+.vscode/
+
+# Logs & generated files
+scan_results.json
+scan_results.txt
+model.pkl

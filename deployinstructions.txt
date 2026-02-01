@@ -1,0 +1,28 @@
+In the directory of phish guard:
+
+python -m uvicorn api:app --reload <- To deploy backend
+
+Then run the gui from the Python file
+
+
+Alternative:
+uvicorn api:app --reload
+
+
+
+
+
+Additional Information:
+
+Data flow:
+urls.txt ➡️main.py ➡️ scan_results.json ➡️ train_model.py ➡️ model.pk1
+preidct.py ➡️/api.py
+
+- Rule based reasons for each URL
+- ML probability in predict.py and in training output
+
+Tooling:
+- argparse for CLI
+- joblib for model saving/loaing
+- FastAPI + uvicorn for web API
+- Tkinter GUI on top of the API
