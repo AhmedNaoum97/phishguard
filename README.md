@@ -87,18 +87,18 @@ This makes it suitable for learning, security analysis, and SOC workflows.
 ## Project Structure
 
 phishguard/
-  main.py              - CLI scanner (rules + logging)
-  scanner.py           - Core feature extraction and scoring
-  train_model.py       - Train ML model using scan_results.json
-  predict.py           - Predict phishing probability with trained model
-  api.py               - REST API with FastAPI
-  gui.py               - Tkinter desktop application
-  urls.txt             - Input file for batch scanning
-  scan_results.txt     - Human readable logging output
-  scan_results.json    - JSON results, used for ML
-  model.pkl            - Trained model file (after training)
-  .gitignore
-  README.md
+│
+├── main.py           # CLI scanner (rules + logging)
+├── scanner.py        # Core feature extraction and scoring
+├── train_model.py    # Train ML model
+├── predict.py        # Predict phishing probability
+├── api.py            # FastAPI backend
+├── gui.py            # Tkinter desktop app
+│
+├── urls.txt
+├── requirements.txt
+├── README.md
+└── .gitignore
 
 ---
 
