@@ -87,7 +87,6 @@ This makes it suitable for learning, security analysis, and SOC workflows.
 ## Project Structure
 
 phishguard/
-│
 ├── main.py           # CLI scanner (rules + logging)
 ├── scanner.py        # Core feature extraction + scoring
 ├── train_model.py    # Train ML model
