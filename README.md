@@ -89,17 +89,15 @@ This makes it suitable for learning, security analysis, and SOC workflows.
 phishguard/
 │
 ├── main.py           # CLI scanner (rules + logging)
-├── scanner.py        # Core feature extraction and scoring
+├── scanner.py        # Core feature extraction + scoring
 ├── train_model.py    # Train ML model
 ├── predict.py        # Predict phishing probability
 ├── api.py            # FastAPI backend
 ├── gui.py            # Tkinter desktop app
-│
-├── urls.txt
+├── urls.txt          # Batch input
 ├── requirements.txt
 ├── README.md
 └── .gitignore
-
 ---
 
 ## Usage
