@@ -1,25 +1,45 @@
 # PhishGuard
 
-> AI-powered phishing URL detector — full-stack portfolio project
+> Detect phishing URLs instantly using machine learning and AI-powered analysis.
 
-## What it does
+PhishGuard analyzes URLs in real time, extracting 20+ security signals and running them
+through a trained classification model to identify phishing attempts. Each scan includes
+a plain-English explanation of exactly why a URL is flagged as suspicious.
 
-[Brief description — fill in when complete]
+---
+
+## Features
+
+- **Instant URL analysis** — risk score, verdict, and per-feature breakdown
+- **Trained ML model** — Random Forest / XGBoost trained on the UCI Phishing Dataset
+- **AI explanations** — Claude API generates a human-readable summary of each result
+- **Scan history** — searchable log of all previous scans with filtering by verdict
+- **Rate limiting** — API protected against abuse
+
+---
 
 ## Tech stack
 
-- **Frontend:** React 19 + TypeScript + Vite
-- **Backend:** FastAPI (Python)
-- **ML:** scikit-learn / XGBoost trained on UCI Phishing Dataset
-- **Database:** SQLite + SQLAlchemy
-- **AI layer:** Claude API
-- **Deployment:** Railway (backend) + Vercel (frontend)
+| Layer      | Technology                            |
+| ---------- | ------------------------------------- |
+| Frontend   | React 19 + TypeScript + Vite          |
+| Backend    | FastAPI (Python)                      |
+| ML         | scikit-learn / XGBoost                |
+| Database   | SQLite + SQLAlchemy                   |
+| AI layer   | Claude API (Anthropic)                |
+| Deployment | Railway (backend) · Vercel (frontend) |
+
+---
 
 ## Architecture
 
-[Diagram — add in Sprint 6]
+```
+[React Frontend] → [FastAPI Backend] → [Feature Extractor] → [ML Model]
+                            ↓
+                      [SQLite DB] → [Claude API]
+```
 
-## Running locally
+## Getting started
 
 ### Prerequisites
 
@@ -30,18 +50,28 @@
 ### Backend
 
 ```bash
-# instructions coming in Sprint 3
+cd backend
+python -m venv venv
+venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+uvicorn app.main:app --reload
 ```
 
 ### Frontend
 
 ```bash
-# instructions coming in Sprint 4
+cd frontend
+npm install
+npm run dev
 ```
+
+---
 
 ## Demo
 
-[Link + GIF — add in Sprint 6]
+_Coming soon_
+
+---
 
 ## License
 
