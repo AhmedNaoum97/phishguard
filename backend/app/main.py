@@ -38,3 +38,8 @@ def predict(request: ScanRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(scan)
     return scan
+
+@app.get("/api/scans", response_model=list[ScanResponse])
+def get_scans(db: Session = Depends(get_db)):
+    scans = db.query(Scan).order_by(Scan.scanned_at.desc()).limit(50).all()
+    return scans
