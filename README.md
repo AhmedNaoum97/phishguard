@@ -18,8 +18,9 @@ a plain-English explanation of exactly why a URL is flagged as suspicious.
 
 - [x] Project setup & FastAPI skeleton
 - [x] ML pipeline — data exploration, feature selection, model training & evaluation
-- [ ] Feature extraction engine
-- [ ] Backend API & database
+- [x] Feature extraction engine (17 URL-only features)
+- [x] Backend API & database (`/api/predict`, `/api/scans`, SQLite persistence)
+- [ ] Model retrain — fix dataset-driven false-positive bias (see ML Findings)
 - [ ] Frontend
 - [ ] AI explanation layer (Claude API)
 - [ ] Deployment
@@ -73,7 +74,13 @@ The model was trained and evaluated on the [PhiUSIIL Phishing URL Dataset](https
 **A note on near-perfect accuracy:**
 Both models scored ~100% accuracy, which initially looked suspicious. Investigated for data leakage — checked feature correlation with the label (highest: 0.86, not high enough to explain this) and duplicate rows (0.34%, too small to explain this). Confirmed with a deliberately simple Logistic Regression model, which also scored 99.99%.
 
-This points to a known limitation of academic phishing datasets: legitimate and phishing URLs are typically sourced very differently (top-traffic lists vs. threat-intelligence feeds), making them structurally easy to separate. This doesn't reflect how the model would perform against real-world phishing that actively mimics legitimate sites — a limitation worth keeping in mind as this project moves toward a live feature extractor in Sprint 2.
+This points to a known limitation of academic phishing datasets: legitimate and phishing URLs are typically sourced very differently, making them structurally easy to separate.
+
+**Update (Sprint 3): this limitation was confirmed in production.** Once the live feature extractor and `/api/predict` endpoint were built, real-world URLs were tested against the model. Every URL — including obviously legitimate ones like `github.com`, `google.com/search`, and `wikipedia.org` — was flagged as phishing (confidence 0.69–0.99).
+
+Root-cause investigation traced this to the dataset's _legitimate_ class: sampling the `label == 1` rows revealed they are almost entirely bare homepages (`https://www.example.com` with no path or query string), while the phishing class contains full URLs with paths and parameters. The model therefore learned a shortcut — "any URL with a path is phishing" — which perfectly separates this dataset (hence 100% test accuracy) but fails completely on real traffic, where legitimate URLs routinely have paths.
+
+This is a textbook **train/serve distribution mismatch**. The fix (planned as Sprint 2.5) is to augment the legitimate class with realistic URLs containing paths and query strings, retrain, and validate against a fixed real-world benchmark set rather than only the dataset's own test split. Full investigation write-up: [`docs/model-investigation.md`](docs/model-investigation.md).
 
 ---
 
