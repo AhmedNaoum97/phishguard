@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type ScanResult = {
   url: string;
@@ -8,11 +8,20 @@ type ScanResult = {
 };
 
 function App() {
-  // 1. State declarations
   const [url, setUrl] = useState("");
   const [result, setResult] = useState<ScanResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [recentScans, setRecentScans] = useState<ScanResult[]>([]);
 
+  async function loadScans() {
+    const response = await fetch("http://127.0.0.1:8000/api/scans");
+    const data: ScanResult[] = await response.json();
+    setRecentScans(data);
+  }
+
+  useEffect(() => {
+    loadScans();
+  }, []);
   async function handleScan() {
     setIsLoading(true);
     setResult(null);
@@ -25,9 +34,9 @@ function App() {
 
     const data: ScanResult = await response.json();
     setResult(data);
+    await loadScans();
     setIsLoading(false);
   }
-  // 3. What the user sees
 
   return (
     <main>
@@ -41,9 +50,15 @@ function App() {
         Scan
       </button>
       {isLoading && <p>Scanning...</p>}
-      {result && (
-        <p>Verdict: {result.is_phishing ? "Phishing" : "Safe"}</p>
-      )}{" "}
+      {result && <p>Verdict: {result.is_phishing ? "Phishing" : "Safe"}</p>}
+      <h2>Recent scans</h2>
+      <ul>
+        {recentScans.map((scan) => (
+          <li key={scan.scanned_at}>
+            {scan.url} - {scan.is_phishing ? "Phishing" : "Safe"}
+          </li>
+        ))}
+      </ul>
     </main>
   );
 }
