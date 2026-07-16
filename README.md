@@ -11,10 +11,11 @@ repository documents exactly why that number is misleading.
 
 ## Project Status
 
-**Complete (backend).** Runs locally — see [Getting started](#getting-started). The trained
-model carries a documented dataset-driven limitation — see
-[Machine Learning Findings](#machine-learning-findings). Model retrain and frontend are
-scoped as future work.
+**Backend complete. Frontend in progress (Sprint 4).** Runs locally — see
+[Getting started](#getting-started). The trained model carries a documented
+dataset-driven limitation — see [Machine Learning Findings](#machine-learning-findings).
+Model retrain is scoped as Sprint 2.5; the frontend renders whatever the API returns,
+so it is unaffected by the retrain.
 
 ---
 
@@ -26,11 +27,12 @@ scoped as future work.
 - [x] Backend API & database (`/api/predict`, `/api/scans`, SQLite persistence)
 - [x] Root-cause investigation of real-world false positives (see ML Findings)
 - [x] Test suite — pytest, 13 tests (feature extractor unit tests + API contract tests)
+- [x] Frontend — scan form wired to `/api/predict` (React + TypeScript + Vite)
+- [ ] Frontend — recent scans list via `/api/scans` (in progress)
 
 ### Future work (deliberately deprioritized)
 
 - Model retrain — augment the legitimate class with realistic deep URLs (scoped as Sprint 2.5)
-- Frontend (React + TypeScript)
 - AI explanation layer (Claude API)
 
 ---
@@ -38,6 +40,7 @@ scoped as future work.
 ## Features
 
 - **Instant URL analysis** — risk score, verdict, and per-feature breakdown via `/api/predict`
+- **Scan form UI** — React frontend with typed API responses, loading state, and input guards
 - **Trained ML model** — Random Forest / XGBoost trained on the PhiUSIIL Phishing URL Dataset (2024)
 - **Scan history** — persistent log of the 50 most recent scans via `/api/scans`
 
@@ -45,16 +48,15 @@ scoped as future work.
 
 ## Tech stack
 
-| Layer    | Technology             |
-| -------- | ---------------------- |
-| Backend  | FastAPI (Python)       |
-| ML       | scikit-learn / XGBoost |
-| Database | SQLite + SQLAlchemy    |
+| Layer    | Technology                |
+| -------- | ------------------------- |
+| Frontend | React + TypeScript (Vite) |
+| Backend  | FastAPI (Python)          |
+| ML       | scikit-learn / XGBoost    |
+| Database | SQLite + SQLAlchemy       |
 
-A React frontend and an LLM explanation layer were scoped but deliberately cut —
-there is no value in building a UI for a model with a known validity issue.
-Public deployment was skipped for the same reason: knowingly serving invalid verdicts
-adds nothing. The deployment skillset is demonstrated in
+Public deployment is intentionally skipped until the Sprint 2.5 retrain — knowingly
+serving invalid verdicts adds nothing. The deployment skillset is demonstrated in
 [SafeNet Companion](https://github.com/AhmedNaoum97/safenet-companion).
 
 ---
@@ -62,9 +64,9 @@ adds nothing. The deployment skillset is demonstrated in
 ## Architecture
 
 ```
-[Client] → [FastAPI Backend] → [Feature Extractor] → [ML Model]
-                  ↓
-             [SQLite DB]
+[React Frontend] → [FastAPI Backend] → [Feature Extractor] → [ML Model]
+                         ↓
+                    [SQLite DB]
 ```
 
 ---
@@ -98,6 +100,7 @@ This is a textbook **train/serve distribution mismatch**. The fix is documented 
 ### Prerequisites
 
 - Python 3.11+
+- Node.js 20+
 
 ### Backend
 
@@ -108,6 +111,16 @@ venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173 — the backend must be running on port 8000.
 
 ### Run the tests
 
@@ -120,8 +133,9 @@ python -m pytest
 
 ## Demo (local)
 
-Run the backend (see [Getting started](#getting-started)), then try it — and note the
-false positive. That's the point (see [ML Findings](#machine-learning-findings)):
+Run the backend and frontend (see [Getting started](#getting-started)), then scan a URL
+in the UI — and note the false positive. That's the point (see
+[ML Findings](#machine-learning-findings)):
 
 ```bash
 curl -X POST http://localhost:8000/api/predict \
@@ -138,8 +152,8 @@ curl -X POST http://localhost:8000/api/predict \
 }
 ```
 
-Deployment was intentionally skipped — the model's documented validity issue means
-there is no value in serving it publicly.
+Public deployment is intentionally skipped until the Sprint 2.5 retrain — the model's
+documented validity issue means there is no value in serving it publicly yet.
 
 ---
 
