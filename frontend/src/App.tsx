@@ -61,7 +61,7 @@ function App() {
         placeholder="https://example.com"
         onChange={(e) => setUrl(e.target.value)}
       ></input>
-      <button onClick={handleScan} disabled={isLoading || url === ""}>
+      <button onClick={handleScan} disabled={isLoading || url.trim() === ""}>
         Scan
       </button>
       {isLoading && <p>Scanning...</p>}

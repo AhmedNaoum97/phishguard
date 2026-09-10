@@ -11,11 +11,10 @@ repository documents exactly why that number is misleading.
 
 ## Project Status
 
-**Backend complete. Frontend in progress (Sprint 4).** Runs locally — see
-[Getting started](#getting-started). The trained model carries a documented
-dataset-driven limitation — see [Machine Learning Findings](#machine-learning-findings).
-Model retrain is scoped as Sprint 2.5; the frontend renders whatever the API returns,
-so it is unaffected by the retrain.
+**Backend and frontend complete. Model retrained and validated (Sprint 2.5 resolved).**
+Runs locally — see [Getting started](#getting-started). The model was retrained after a
+documented dataset-driven failure — see [Machine Learning Findings](#machine-learning-findings)
+and the full [investigation write-up](docs/model-investigation.md).
 
 ---
 
@@ -28,12 +27,14 @@ so it is unaffected by the retrain.
 - [x] Root-cause investigation of real-world false positives (see ML Findings)
 - [x] Test suite — pytest, 13 tests (feature extractor unit tests + API contract tests)
 - [x] Frontend — scan form wired to `/api/predict` (React + TypeScript + Vite)
-- [ ] Frontend — recent scans list via `/api/scans` (in progress)
+- [x] Frontend — recent scans list via `/api/scans`
+- [x] Model retrain — augmented legitimate class with realistic deep URLs (Sprint 2.5)
 
 ### Future work (deliberately deprioritized)
 
-- Model retrain — augment the legitimate class with realistic deep URLs (scoped as Sprint 2.5)
+- Layer in domain reputation / age / threat-intel signals — URL shape alone has a signal ceiling
 - AI explanation layer (Claude API)
+- Public deployment
 
 ---
 
@@ -55,8 +56,8 @@ so it is unaffected by the retrain.
 | ML       | scikit-learn / XGBoost    |
 | Database | SQLite + SQLAlchemy       |
 
-Public deployment is intentionally skipped until the Sprint 2.5 retrain — knowingly
-serving invalid verdicts adds nothing. The deployment skillset is demonstrated in
+Public deployment is not set up yet — see [Future work](#progress). The deployment
+skillset is demonstrated in
 [SafeNet Companion](https://github.com/AhmedNaoum97/safenet-companion).
 
 ---
@@ -91,7 +92,28 @@ This points to a known limitation of academic phishing datasets: legitimate and 
 
 Root-cause investigation traced this to the dataset's _legitimate_ class: sampling the `label == 1` rows revealed they are almost entirely bare homepages (`https://www.example.com` with no path or query string), while the phishing class contains full URLs with paths and parameters. The model therefore learned a shortcut — "any URL with a path is phishing" — which perfectly separates this dataset (hence 100% test accuracy) but fails completely on real traffic, where legitimate URLs routinely have paths.
 
-This is a textbook **train/serve distribution mismatch**. The fix is documented as future work (Sprint 2.5): augment the legitimate class with realistic URLs containing paths and query strings, retrain, and validate against a fixed real-world benchmark set rather than only the dataset's own test split. It was deliberately deprioritized — the investigation itself is the core finding of this project, and URL-only classification has a signal ceiling regardless of training data. Production phishing detection layers in domain reputation, domain age, and threat intelligence, which is the approach explored in the follow-up project. Full investigation write-up: [`docs/model-investigation.md`](docs/model-investigation.md).
+This is a textbook **train/serve distribution mismatch**.
+
+**Update (Sprint 2.5): fixed and validated.** The model was retrained on the
+[`malicious_phish`](https://www.kaggle.com/datasets/sid321axn/malicious-urls-dataset)
+dataset, where legitimate URLs include realistic paths and query strings, using the
+same `extractor.py` module the live API imports — eliminating the possibility of
+train/serve drift by construction. Two further bugs were caught and fixed during the
+retrain: a stale feature set left over from a prior extractor change, and an inverted
+label convention that was only caught by testing the _deployed_ `/api/predict` endpoint
+directly, not just the training notebook's own metrics.
+
+**Results:** 89% held-out test accuracy (down from v1's misleading ~100% — the honest,
+expected outcome), 86.3% of PhiUSIIL's phishing URLs correctly caught as an
+out-of-distribution generalization check, and `github.com/AhmedNaoum97` — the exact case
+that broke v1 — now correctly classified as legitimate, confirmed live through the
+deployed API.
+
+This remains a **single-signal, URL-only detector** — it has no domain reputation, age,
+or threat-intel layer, and should not be treated as production-ready security software.
+That ceiling is why a follow-up project layering in those signals is the natural next
+step. Full investigation write-up, including the retrain and both bugs found along the
+way: [`docs/model-investigation.md`](docs/model-investigation.md).
 
 ---
 
@@ -134,8 +156,7 @@ python -m pytest
 ## Demo (local)
 
 Run the backend and frontend (see [Getting started](#getting-started)), then scan a URL
-in the UI — and note the false positive. That's the point (see
-[ML Findings](#machine-learning-findings)):
+in the UI:
 
 ```bash
 curl -X POST http://localhost:8000/api/predict \
@@ -146,14 +167,16 @@ curl -X POST http://localhost:8000/api/predict \
 ```json
 {
   "url": "https://github.com/AhmedNaoum97",
-  "is_phishing": true,
-  "confidence": 0.61,
-  "scanned_at": "2026-07-07T14:47:58.965334"
+  "is_phishing": false,
+  "confidence": 0.965,
+  "scanned_at": "2026-09-09T02:47:58.965334"
 }
 ```
 
-Public deployment is intentionally skipped until the Sprint 2.5 retrain — the model's
-documented validity issue means there is no value in serving it publicly yet.
+This is the exact URL that the pre-retrain model (v1) incorrectly flagged as phishing
+— see [ML Findings](#machine-learning-findings) for the full before/after story.
+
+Public deployment isn't set up yet; see [Future work](#progress).
 
 ---
 

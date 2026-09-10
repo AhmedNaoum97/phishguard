@@ -153,3 +153,42 @@ to investigate first, not a result to celebrate. The most valuable check cost no
 ten raw examples from each class and read them. That single step would have surfaced the
 bare-homepage bias before any modeling work — and it is now the first thing I do when a model
 looks too good.
+
+---
+
+## 8. The fix (Sprint 2.5, resolved)
+
+The model was retrained on the `malicious_phish` dataset, where legitimate URLs include
+realistic paths and query strings rather than bare homepages. The retrain surfaced and
+fixed two additional bugs along the way:
+
+- **Train/serve feature mismatch.** The feature extractor had been updated since v1 (an
+  `IsHTTPS` collection artifact was removed), but the model wasn't retrained to match,
+  and the scheme-prepending logic had an edge case that broke on malformed URLs. Fixed
+  by training directly against the same `extractor.py` module the live API imports —
+  training and serving can no longer drift apart, because they're the same code.
+- **Label convention mismatch.** The new dataset encoded `1 = phishing`, while the
+  serving code expected `0 = phishing` (matching v1's convention). Caught before
+  shipping by testing the live `/api/predict` endpoint directly, not just trusting the
+  notebook's own metrics — predictions were inverted until this was found and fixed.
+
+**Results:**
+
+| Check                                                  | Result |
+| ------------------------------------------------------- | ------ |
+| Held-out test accuracy                                  | 89% (both classes) |
+| Generalization: PhiUSIIL phishing URLs (unseen dataset)  | 86.3% caught |
+| `github.com/AhmedNaoum97` (the case that broke v1)       | Correctly legitimate |
+| `en.wikipedia.org/wiki/Phishing`                         | False positive (see note) |
+
+89% is intentionally lower than v1's misleading 100% — it reflects the model learning
+real, generalizable URL patterns instead of a dataset shortcut. The one false positive
+in manual testing, Wikipedia's own article on phishing, is a defensible edge case: an
+unusually long URL with the literal word "phishing" in the path. Confirmed live via the
+deployed API, not just the training notebook — `github.com/AhmedNaoum97` is now
+correctly classified as legitimate end-to-end.
+
+**Known limitation:** this remains a single-signal, URL-only detector. It does not
+check domain age, reputation, or threat intelligence, and should not be treated as a
+production-ready security tool. A meaningful next step would be layering in a
+reputation/age signal to catch cases the URL shape alone can't resolve.

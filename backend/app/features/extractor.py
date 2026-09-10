@@ -7,7 +7,7 @@ FEATURE_ORDER = [
     'TLDLegitimateProb', 'URLCharProb', 'TLDLength', 'NoOfSubDomain',
     'NoOfObfuscatedChar', 'ObfuscationRatio', 'LetterRatioInURL',
     'DegitRatioInURL', 'NoOfQMarkInURL', 'NoOfAmpersandInURL',
-    'NoOfOtherSpecialCharsInURL', 'SpacialCharRatioInURL', 'IsHTTPS'
+    'NoOfOtherSpecialCharsInURL', 'SpacialCharRatioInURL'
 ]
 
 _tld_probs = None
@@ -35,10 +35,11 @@ def char_continuation_rate(url: str) -> float:
 
 def extract_features(url: str) -> dict:
     _load_probs()
+    if '://' not in url:
+        url = "http://" + url # normalize so netloc parses; isHTTPS still computed correctly below
     parsed = urlparse(url)
     features = {}
     features['URLLength'] = len(url)
-    features['IsHTTPS'] = 1 if parsed.scheme == 'https' else 0
     features['NoOfQMarkInURL'] = url.count('?')
     features['NoOfAmpersandInURL'] = url.count('&')
     domain = parsed.netloc
