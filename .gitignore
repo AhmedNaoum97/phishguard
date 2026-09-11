@@ -7,3 +7,4 @@ venv/
 data/*.csv
 *.db
 .pytest_cache/
+backend/app/ml/*.pkl
