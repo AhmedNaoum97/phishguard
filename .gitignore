@@ -8,3 +8,5 @@ data/*.csv
 *.db
 .pytest_cache/
 backend/app/ml/*.pkl
+!backend/app/ml/phishguard_model_url_only.pkl
+.venv/
