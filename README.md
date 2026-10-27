@@ -131,6 +131,8 @@ cd backend
 python -m venv venv
 venv\Scripts\activate  # Windows
 pip install -r requirements.txt
+copy .env.example .env  # macOS/Linux: cp .env.example .env
+python init_db.py
 uvicorn app.main:app --reload
 ```
 
